@@ -1,0 +1,47 @@
+"use client";
+
+import { useCinematicScroll } from "@/hooks/useCinematicScroll";
+import { HeroScroll } from "@/components/sections/HeroScroll";
+import { PlaneMorph } from "@/components/sections/PlaneMorph";
+import { Globe } from "@/components/sections/Globe";
+
+import { NavbarOverlay } from "@/components/ui/NavbarOverlay";
+import { HeadingOverlay } from "@/components/ui/HeadingOverlay";
+import { HudOverlay } from "@/components/ui/HudOverlay";
+
+export default function Home() {
+  const { progress, isMission, startMission, scrollToSection } = useCinematicScroll();
+
+  return (
+    <main className="relative bg-black w-full" style={{ height: "800vh" }}>
+      {/* 
+        The sections are now absolutely stacked and controlled 
+        by the central progress value.
+      */}
+      {/* Hidden Navigation Anchors */}
+      <div id="experience" className="absolute top-0 h-px w-px pointer-events-none" />
+      <div id="aircraft" className="absolute top-[240vh] h-px w-px pointer-events-none" />
+      <div id="system" className="absolute top-[480vh] h-px w-px pointer-events-none" />
+      <div id="global" className="absolute top-[704vh] h-px w-px pointer-events-none" />
+
+      <div className="fixed inset-0 w-full h-full overflow-hidden">
+        <HeroScroll progress={progress} />
+        <PlaneMorph progress={progress} />
+        <Globe progress={progress} />
+      </div>
+
+      {/* Cockpit HUD Layers */}
+      <NavbarOverlay
+        progress={progress}
+        isMission={isMission}
+        startMission={startMission}
+        scrollToSection={scrollToSection}
+      />
+      <HeadingOverlay progress={progress} />
+      <HudOverlay progress={progress} />
+
+      {/* Global Cinematic Filter Overlay - Reduced for clarity */}
+      <div className="fixed inset-0 pointer-events-none z-[100] opacity-5 mix-blend-soft-light bg-neutral-900" />
+    </main>
+  );
+}
