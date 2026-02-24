@@ -5,12 +5,13 @@ import { useImageSequence } from "@/hooks/useImageSequence";
 import { CinematicViewport } from "@/components/ui/CinematicViewport";
 import { interpolateShot, luxuryEase } from "@/lib/motion";
 
-export const PlaneMorph = ({ progress }: { progress: number }) => {
-    const { isLoaded, drawFrame } = useImageSequence(
-        "Sequence2",
-        "ezgif-frame-",
-        120
-    );
+interface PlaneMorphProps {
+    progress: number;
+    sequence: ReturnType<typeof useImageSequence>;
+}
+
+export const PlaneMorph = ({ progress, sequence }: PlaneMorphProps) => {
+    const { isLoaded, drawFrame } = sequence;
 
     const canvas1Ref = useRef<HTMLCanvasElement>(null);
     const canvas2Ref = useRef<HTMLCanvasElement>(null);

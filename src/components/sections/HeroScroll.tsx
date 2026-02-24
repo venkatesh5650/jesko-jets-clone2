@@ -5,12 +5,13 @@ import { useImageSequence } from "@/hooks/useImageSequence";
 import { CinematicViewport } from "@/components/ui/CinematicViewport";
 import { smoothstep, interpolateShot } from "@/lib/motion";
 
-export const HeroScroll = ({ progress }: { progress: number }) => {
-    const { canvasRef, isLoaded, renderFrame } = useImageSequence(
-        "Sequence1",
-        "ezgif-frame-",
-        120
-    );
+interface HeroScrollProps {
+    progress: number;
+    sequence: ReturnType<typeof useImageSequence>;
+}
+
+export const HeroScroll = ({ progress, sequence }: HeroScrollProps) => {
+    const { canvasRef, isLoaded, renderFrame } = sequence;
 
     // Range Mapping: 0.0 -> 0.5 is the Hero focus
     // Transition out between 0.4 and 0.5
