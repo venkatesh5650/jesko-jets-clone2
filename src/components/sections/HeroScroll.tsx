@@ -13,12 +13,12 @@ interface HeroScrollProps {
 export const HeroScroll = ({ progress, sequence }: HeroScrollProps) => {
     const { canvasRef, isLoaded, renderFrame } = sequence;
 
-    // Range Mapping: 0.0 -> 0.5 is the Hero focus
-    // Transition out between 0.4 and 0.5
-    const config = interpolateShot(progress, 0.4, 0.5, {
+    // V15 PREMIUM CINEMATIC HANDOFF [0.15 - 0.28]
+    // The Hero section gently flows into the aircraft reveal.
+    const config = interpolateShot(progress, 0.15, 0.28, {
         opacity: [1, 0],
-        scale: [1, 1.02],
-        blur: [0, 4]
+        scale: [1, 1.05], // Subtle camera pull-away
+        blur: [0, 15]
     });
 
     useEffect(() => {
@@ -38,9 +38,13 @@ export const HeroScroll = ({ progress, sequence }: HeroScrollProps) => {
                 ref={canvasRef}
                 style={{
                     opacity: config.opacity,
-                    display: isLoaded ? "block" : "none"
+                    display: isLoaded ? "block" : "none",
+                    // V18: Over-scan scale (1.05) + Camera depth (translateZ)
+                    transform: `translate3d(0, 0, ${(config.scale - 1) * 200}px) scale(1.05)`,
+                    objectFit: 'cover',
+                    willChange: 'transform, opacity'
                 }}
-                className="w-full h-full"
+                className="w-full h-full transform-gpu [perspective:1000px]"
             />
 
             <div

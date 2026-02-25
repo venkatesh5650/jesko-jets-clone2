@@ -15,15 +15,14 @@ export const NavbarOverlay = ({ progress, isMission, startMission, scrollToSecti
 
     const navItems = [
         { label: "Mission", action: startMission },
-        { label: "Flight", progress: 0 },
-        { label: "Engineering", progress: 0.3 },
-        { label: "Blueprint", progress: 0.75 },
-        { label: "Global", progress: 0.95 },
+        { label: "DYNAMICS", progress: 0.00, id: "dynamics" },
+        { label: "INTERIOR", progress: 0.52, id: "interior" },
+        { label: "NETWORK", progress: 0.82, id: "network" },
     ];
 
     // activeSection strictly tracks progress categories (Flight, Engineering, etc.)
     const activeSection = navItems.reduce((acc, item, index) => {
-        return (item.progress !== undefined && progress >= item.progress - 0.02) ? index : acc;
+        return (item.progress !== undefined && progress >= item.progress - 0.05) ? index : acc;
     }, 1);
 
     const handleMobileClick = (item: typeof navItems[0]) => {

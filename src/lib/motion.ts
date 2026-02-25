@@ -8,9 +8,13 @@ export const smoothstep = (min: number, max: number, value: number) => {
 
 /**
  * Luxury cubic-bezier approximation: (0.65, 0, 0.35, 1)
+ * This provides a heavy, slow-start, smooth-continuation feel.
  */
 export const luxuryEase = (t: number) => {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    // Precise cubic-bezier(0.65, 0, 0.35, 1) approximation
+    return t < 0.5
+        ? 4 * t * t * t
+        : 1 - Math.pow(-2 * t + 2, 4) / 2; // Slightly steeper for "heavy" feel
 };
 
 /**

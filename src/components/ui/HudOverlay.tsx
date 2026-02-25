@@ -9,12 +9,13 @@ interface HudOverlayProps {
 export const HudOverlay = ({ progress }: HudOverlayProps) => {
     // Simple data simulation based on progress
     const altitude = Math.floor(32000 - (progress * 5000)).toLocaleString();
-    const morphPercent = Math.floor(Math.min(100, Math.max(0, (progress - 0.4) / 0.3 * 100)));
+    const morphPercent = Math.floor(Math.min(100, Math.max(0, (progress - 0.3) / 0.62 * 100)));
 
     const getMode = () => {
-        if (progress < 0.4) return "CRUISE";
-        if (progress < 0.7) return "BLUEPRINT_ANALYSIS";
-        return "GLOBAL_SYNC";
+        if (progress < 0.25) return "LANDED_STAB";
+        if (progress < 0.52) return "MECH_SPLIT";
+        if (progress < 0.82) return "MACRO_SCAN";
+        return "NETWORK_SYNC";
     };
 
     return (

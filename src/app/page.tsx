@@ -23,7 +23,7 @@ export default function Home() {
   );
 
   const morphSequence = useImageSequence(
-    "Sequence2",
+    "sequence2updated",
     "ezgif-frame-",
     120
   );
@@ -57,9 +57,9 @@ export default function Home() {
       */}
       {/* Hidden Navigation Anchors */}
       <div id="experience" className="absolute top-0 h-px w-px pointer-events-none" />
-      <div id="aircraft" className="absolute top-[240vh] h-px w-px pointer-events-none" />
-      <div id="system" className="absolute top-[480vh] h-px w-px pointer-events-none" />
-      <div id="global" className="absolute top-[704vh] h-px w-px pointer-events-none" />
+      <div id="dynamics" className="absolute top-0 h-px w-px pointer-events-none" />
+      <div id="interior" className="absolute top-[416vh] h-px w-px pointer-events-none" /> {/* 0.52 * 800 */}
+      <div id="network" className="absolute top-[656vh] h-px w-px pointer-events-none" /> {/* 0.82 * 800 */}
 
       <div className="fixed inset-0 w-full h-full overflow-hidden">
         <HeroScroll progress={progress} sequence={heroSequence} />

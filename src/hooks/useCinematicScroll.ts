@@ -44,7 +44,7 @@ export const useCinematicScroll = () => {
             }
 
             const { current, target } = scrollData.current;
-            const damping = 0.06;
+            const damping = 0.045; // Refined for ultra-smooth "heavy" feel
             const next = current + (target - current) * damping;
 
             scrollData.current.current = next;

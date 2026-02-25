@@ -8,10 +8,9 @@ interface HeadingOverlayProps {
 
 export const HeadingOverlay = ({ progress }: HeadingOverlayProps) => {
     const getActiveTitle = () => {
-        if (progress < 0.3) return "ADVANCED AERIAL DYNAMICS";
-        if (progress < 0.55) return "FROM MATERIAL TO ENGINEERING";
-        if (progress < 0.75) return "PRECISION IN EVERY COMPONENT";
-        return "GLOBAL FLIGHT INTELLIGENCE";
+        if (progress < 0.45) return "ADVANCED AERIAL DYNAMICS";
+        if (progress < 0.75) return "PREMIUM CABIN EXPERIENCE";
+        return "GLOBAL NETWORK ARCHITECTURE";
     };
 
     const title = getActiveTitle();
