@@ -50,6 +50,9 @@ export const PlaneMorph = ({ progress, sequence }: PlaneMorphProps) => {
             ? Math.max(0, Math.min(1, (progress - splitStartProgress) / 0.25))
             : 0;
 
+        // NEW: Continuous Forward Drift (Luxury Scale 1.0 -> 1.05 during the split)
+        const forwardDrift = 1 + (splitProgress * 0.05);
+
         // Zero-Black Safety Buffer: Scene 1 exit delayed until Scene 2 is solid
         const exit = Math.max(0, Math.min(1, (progress - 0.68) / 0.10));
 
@@ -57,10 +60,11 @@ export const PlaneMorph = ({ progress, sequence }: PlaneMorphProps) => {
             active: progress < 0.78 && progress >= entryWindow[0],
             frozen: isFrozen,
             opacity: entryShot.opacity * (1 - exit),
-            scale: entryShot.scale,
+            scale: entryShot.scale * forwardDrift,
             blur: entryShot.blur,
             splitProgress: luxuryEase(splitProgress) * motionMultiplier,
-            frame: masterFrameIndex
+            frame: masterFrameIndex,
+            parallax: splitProgress * 20 // Value for subtle depth shift
         };
     }, [progress, masterFrameIndex, motionMultiplier]);
 
@@ -204,7 +208,7 @@ export const PlaneMorph = ({ progress, sequence }: PlaneMorphProps) => {
                             {/* Split Logic Rendering */}
                             <div
                                 style={{
-                                    transform: `translate3d(-${scene1.splitProgress * 25}%, 0, 0)`,
+                                    transform: `translate3d(-${scene1.splitProgress * 25}%, ${scene1.parallax}px, ${scene1.parallax}px)`,
                                     opacity: 1,
                                     width: '50%',
                                     height: '100%',
@@ -218,7 +222,7 @@ export const PlaneMorph = ({ progress, sequence }: PlaneMorphProps) => {
 
                             <div
                                 style={{
-                                    transform: `translate3d(${scene1.splitProgress * 25}%, 0, 0)`,
+                                    transform: `translate3d(${scene1.splitProgress * 25}%, -${scene1.parallax}px, ${scene1.parallax}px)`,
                                     opacity: 1,
                                     width: '50%',
                                     height: '100%',

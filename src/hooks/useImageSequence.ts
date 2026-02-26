@@ -142,7 +142,7 @@ export const useImageSequence = (
         canvasRef.current.style.height = "100%";
         canvasRef.current.style.objectFit = "cover"; // V18: Smart Hybrid Framing
         canvasRef.current.style.objectPosition = "center";
-        canvasRef.current.style.imageRendering = "auto";
+        canvasRef.current.style.imageRendering = "crisp-edges"; // V19: Clarity Priority
       }
     };
 

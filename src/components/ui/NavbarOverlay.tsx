@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { cn } from "@/lib/utils";
+import { AntigravityButton } from "./AntigravityButton";
 
 interface NavbarOverlayProps {
     progress: number;
@@ -36,9 +37,9 @@ export const NavbarOverlay = ({ progress, isMission, startMission, scrollToSecti
 
     return (
         <>
-            <nav className="fixed top-0 left-0 w-full h-16 flex justify-between items-center px-6 md:px-12 z-[3000] pointer-events-auto">
-                {/* Background with Blur */}
-                <div className="absolute inset-0 bg-black/15 backdrop-blur-xl border-b border-white/5" />
+            <nav className="fixed top-0 left-0 w-full h-20 flex justify-between items-center px-8 md:px-16 z-[3000] pointer-events-auto">
+                {/* World-Class Frosted Glass Background (Top Gradient) */}
+                <div className="absolute inset-0 bg-gradient-to-b from-white/[0.08] to-transparent backdrop-blur-[18px] border-b border-white/[0.03]" />
 
                 {/* Left: Logo */}
                 <button
@@ -46,35 +47,37 @@ export const NavbarOverlay = ({ progress, isMission, startMission, scrollToSecti
                         scrollToSection(0);
                         setIsMenuOpen(false);
                     }}
-                    className="nav-button relative font-light tracking-[0.4em] text-white/90 text-sm md:text-base cursor-pointer group z-[3100]"
+                    className="relative font-extralight tracking-[1em] text-white/50 text-[10px] cursor-pointer group z-[3100] uppercase transition-all duration-700 hover:text-white hover:tracking-[1.05em]"
                 >
                     AERODYN
                 </button>
 
-                {/* Right: Desktop Nav Items */}
-                <div className="relative hidden md:flex gap-12 items-center h-full">
+                <div className="relative hidden md:flex gap-4 items-center h-full">
                     {navItems.map((item, index) => {
                         const isMissionButton = index === 0;
                         const isHighlight = isMissionButton ? isMission : activeSection === index;
-                        const showUnderline = !isMissionButton && activeSection === index;
 
                         return (
-                            <button
+                            <AntigravityButton
                                 key={item.label}
                                 onClick={() => item.action ? item.action() : scrollToSection(item.progress!)}
-                                className={`nav-button relative text-[10px] tracking-[0.3em] uppercase transition-all duration-500 h-full flex items-center cursor-pointer ${isHighlight ? "text-white opacity-100" : "text-white/50 hover:text-white/80"
-                                    }`}
+                                className={cn(
+                                    "px-6 py-2 border-none hover:translate-y-0 hover:shadow-none bg-transparent overflow-visible",
+                                    isHighlight ? "opacity-100" : "opacity-40"
+                                )}
                             >
-                                <span className="relative z-10 transition-transform duration-500 flex items-center h-full">
+                                <span className={cn(
+                                    "transition-colors duration-500",
+                                    isHighlight ? "text-white" : "text-white/80 group-hover:text-black"
+                                )}>
                                     {item.label}
                                 </span>
 
-                                {/* Persistent Progress Underline */}
-                                <div
-                                    className={`absolute bottom-0 left-0 w-full h-[1px] bg-white transition-transform duration-700 ease-[cubic-bezier(0.65,0,0.35,1)] ${showUnderline ? "scale-x-100" : "scale-x-0"
-                                        }`}
-                                />
-                            </button>
+                                {/* Active Indicator Dot */}
+                                {isHighlight && (
+                                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white shadow-[0_0_10px_white]" />
+                                )}
+                            </AntigravityButton>
                         )
                     })}
                 </div>
@@ -136,31 +139,6 @@ export const NavbarOverlay = ({ progress, isMission, startMission, scrollToSecti
                 </div>
             </div>
 
-            <style jsx>{`
-                .nav-button {
-                    transition: all 0.35s cubic-bezier(0.65, 0, 0.35, 1);
-                }
-                .nav-button:hover {
-                    transform: translateY(-2px);
-                    letter-spacing: 0.35em;
-                }
-                .nav-button::after {
-                    content: "";
-                    position: absolute;
-                    left: 0;
-                    bottom: 12px;
-                    width: 100%;
-                    height: 1px;
-                    background: rgba(255, 255, 255, 0.9);
-                    transform: scaleX(0);
-                    transform-origin: left;
-                    transition: transform 0.35s cubic-bezier(0.65, 0, 0.35, 1);
-                    pointer-events: none;
-                }
-                .nav-button:hover::after {
-                    transform: scaleX(1);
-                }
-            `}</style>
         </>
     );
 };

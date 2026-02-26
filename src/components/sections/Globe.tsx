@@ -3,6 +3,7 @@
 import { useRef, useEffect } from "react";
 import { CinematicViewport } from "@/components/ui/CinematicViewport";
 import { interpolateShot } from "@/lib/motion";
+import { AntigravityButton } from "@/components/ui/AntigravityButton";
 
 export const Globe = ({ progress }: { progress: number }) => {
     const globeRef = useRef<HTMLDivElement>(null);
@@ -17,13 +18,14 @@ export const Globe = ({ progress }: { progress: number }) => {
             const deltaTime = time - lastTimeRef.current;
             lastTimeRef.current = time;
 
-            // Luxury linear speed: 1 degree every 500ms (0.002 deg/ms)
-            const speed = 0.002;
+            // Luxury linear speed: 1 degree every 1500ms (0.00067 deg/ms) -> 540s full rotation for ultra-premium feel
+            const speed = 0.00067;
             rotationRef.current += deltaTime * speed;
 
             if (globeRef.current) {
-                // Hard Rule 4: GPU Stabilization
-                globeRef.current.style.transform = `translate3d(0,0,0) rotateY(${rotationRef.current}deg)`;
+                // Hard Rule 4: GPU Stabilization + Subtle Orbital Tilt
+                const orbitTilt = Math.sin(time / 5000) * 2; // Slow 10s orbital cycle
+                globeRef.current.style.transform = `translate3d(0,0,0) rotateY(${rotationRef.current}deg) rotateX(${orbitTilt}deg)`;
             }
 
             requestRef.current = requestAnimationFrame(animate);
@@ -70,13 +72,19 @@ export const Globe = ({ progress }: { progress: number }) => {
 
             <div
                 style={{
-                    opacity: config.opacity * 0.8,
+                    opacity: config.opacity * 0.9,
                     transform: `scale(${config.scale})`,
-                    filter: `brightness(1.2) contrast(1.1) blur(${config.blur}px)`,
+                    filter: `brightness(1.3) contrast(1.2) blur(${config.blur}px)`,
                     willChange: 'transform, opacity'
                 }}
-                className="w-full h-full mix-blend-screen globe-breathe"
+                className="w-[35%] aspect-square mix-blend-screen globe-breathe relative"
             >
+                {/* Rim Light Effect (Left Side) */}
+                <div className="absolute inset-0 rounded-full shadow-[-40px_0_80px_-20px_rgba(34,211,238,0.3)] pointer-events-none z-10" />
+
+                {/* Atmospheric Glow */}
+                <div className="absolute -inset-10 rounded-full bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.05)_0%,transparent_70%)] blur-3xl pointer-events-none" />
+
                 {/* Rule 2: Persistent Render Layer (Direct DOM Update) */}
                 <div
                     ref={globeRef}
@@ -92,10 +100,10 @@ export const Globe = ({ progress }: { progress: number }) => {
                         muted
                         playsInline
                         preload="auto"
-                        className="w-full h-full object-cover grayscale"
-                        style={{ filter: "brightness(0.8) contrast(1.2)" }}
+                        className="w-full h-full object-cover grayscale rounded-full"
+                        style={{ filter: "brightness(0.9) contrast(1.3)" }}
                         onLoadedMetadata={(e) => {
-                            e.currentTarget.playbackRate = 0.85;
+                            e.currentTarget.playbackRate = 0.7;
                         }}
                     >
                         <source src="/EarthRotationVideo.mp4" type="video/mp4" />
@@ -126,10 +134,9 @@ export const Globe = ({ progress }: { progress: number }) => {
                     JESKO <span className="text-neutral-500 font-extralight">NETWORK</span>
                 </h2>
 
-                <button className="group relative px-10 md:px-16 py-4 md:py-5 border border-white/10 text-white text-[10px] md:text-[12px] tracking-[0.6em] uppercase overflow-hidden transition-all hover:border-white/30">
-                    <span className="relative z-10 group-hover:text-black transition-colors duration-500 font-light">Initialize Contact</span>
-                    <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-700 ease-[cubic-bezier(0.65,0,0.35,1)]" />
-                </button>
+                <AntigravityButton>
+                    Initialize Contact
+                </AntigravityButton>
             </div>
 
             {/* Luxury Vignette and Grain */}

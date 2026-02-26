@@ -11,10 +11,27 @@ export const smoothstep = (min: number, max: number, value: number) => {
  * This provides a heavy, slow-start, smooth-continuation feel.
  */
 export const luxuryEase = (t: number) => {
-    // Precise cubic-bezier(0.65, 0, 0.35, 1) approximation
     return t < 0.5
         ? 4 * t * t * t
-        : 1 - Math.pow(-2 * t + 2, 4) / 2; // Slightly steeper for "heavy" feel
+        : 1 - Math.pow(-2 * t + 2, 3) / 2; // Refined for "premium" heavy feel
+};
+
+/**
+ * Standard Ease In Out Cubic
+ */
+export const easeInOutCubic = (t: number) => {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+};
+
+/**
+ * High-End Ease In Out Expo (Apple/Tesla Style)
+ */
+export const easeInOutExpo = (t: number) => {
+    if (t === 0) return 0;
+    if (t === 1) return 1;
+    return t < 0.5
+        ? Math.pow(2, 20 * t - 10) / 2
+        : (2 - Math.pow(2, -20 * t + 10)) / 2;
 };
 
 /**

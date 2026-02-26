@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { easeInOutExpo } from "@/lib/motion";
 
 export const useCinematicScroll = () => {
     const [progress, setProgress] = useState(0);
@@ -32,7 +33,8 @@ export const useCinematicScroll = () => {
         const update = () => {
             if (isMissionRef.current) {
                 const height = document.documentElement.scrollHeight - window.innerHeight;
-                const nextTarget = Math.min(1, scrollData.current.target + 0.0012);
+                // Luxury speed: Slow, intentional crawl
+                const nextTarget = Math.min(1, scrollData.current.target + 0.00085);
                 scrollData.current.target = nextTarget;
 
                 window.scrollTo(0, nextTarget * height);
@@ -44,7 +46,8 @@ export const useCinematicScroll = () => {
             }
 
             const { current, target } = scrollData.current;
-            const damping = 0.045; // Refined for ultra-smooth "heavy" feel
+            // Damping adjusted for a "frictionless" floating feel
+            const damping = 0.028;
             const next = current + (target - current) * damping;
 
             scrollData.current.current = next;
