@@ -61,10 +61,16 @@ export const useImageSequence = (
     if (!canvasRef.current || !img.complete) return;
 
     const dpr = window.devicePixelRatio || 1;
-    const targetWidth = img.naturalWidth;
-    const targetHeight = img.naturalHeight;
+    const isMobile = window.innerWidth <= 768;
+    const maxDimension = isMobile ? 2048 : 7680;
 
-    // Force backing store to match 8K source precision
+    let naturalWidth = img.naturalWidth;
+    let naturalHeight = img.naturalHeight;
+
+    const scaleFactor = Math.min(1, maxDimension / Math.max(naturalWidth, naturalHeight));
+    const targetWidth = Math.floor(naturalWidth * scaleFactor);
+    const targetHeight = Math.floor(naturalHeight * scaleFactor);
+
     if (canvasRef.current.width !== targetWidth * dpr ||
       canvasRef.current.height !== targetHeight * dpr) {
       canvasRef.current.width = targetWidth * dpr;
@@ -72,7 +78,7 @@ export const useImageSequence = (
 
       const ctx = canvasRef.current.getContext("2d");
       if (ctx) {
-        ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.scale(dpr, dpr);
       }
     }
@@ -93,14 +99,22 @@ export const useImageSequence = (
     const img = images[frameIndex];
     if (!img || !img.complete) return;
 
-    // Ensure canvas backing store matches this specific frame's 8K resolution
+    // Ensure canvas backing store matches this specific frame's resolution
+    // V20 MOBILE OPTIMIZATION: Cap resolution on small screens to prevent GPU crash
     const dpr = window.devicePixelRatio || 1;
-    const naturalWidth = img.naturalWidth;
-    const naturalHeight = img.naturalHeight;
+    const isMobile = window.innerWidth <= 768;
+    const maxDimension = isMobile ? 2048 : 7680; // Cap at 2K for mobile, 8K for desktop
 
-    if (canvas.width !== naturalWidth * dpr || canvas.height !== naturalHeight * dpr) {
-      canvas.width = naturalWidth * dpr;
-      canvas.height = naturalHeight * dpr;
+    let naturalWidth = img.naturalWidth;
+    let naturalHeight = img.naturalHeight;
+
+    const scaleFactor = Math.min(1, maxDimension / Math.max(naturalWidth, naturalHeight));
+    const targetWidth = Math.floor(naturalWidth * scaleFactor);
+    const targetHeight = Math.floor(naturalHeight * scaleFactor);
+
+    if (canvas.width !== targetWidth * dpr || canvas.height !== targetHeight * dpr) {
+      canvas.width = targetWidth * dpr;
+      canvas.height = targetHeight * dpr;
       const ctx = canvas.getContext("2d", { alpha: false });
       if (ctx) ctx.scale(dpr, dpr);
     }
@@ -111,9 +125,8 @@ export const useImageSequence = (
     // Trigger aggressive prefetch
     prefetchBuffer(frameIndex);
 
-    // V17 Rule: 1:1 Pixel Mapping
-    // Since canvas = image resolution, we draw at total source size
-    ctx.clearRect(0, 0, naturalWidth, naturalHeight);
+    // Centered Draw with scaling
+    ctx.clearRect(0, 0, targetWidth, targetHeight);
 
     if (options.blur) {
       ctx.filter = `blur(${options.blur}px)`;
@@ -121,8 +134,8 @@ export const useImageSequence = (
       ctx.filter = "none";
     }
 
-    // Centered 1:1 Draw
-    ctx.drawImage(img, 0, 0, naturalWidth, naturalHeight);
+    // Centered Scaled Draw
+    ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
   }, [images, frameCount]);
 
   // Backward compatibility: renderFrame targets the internal ref

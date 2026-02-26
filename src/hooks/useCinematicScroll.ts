@@ -59,6 +59,8 @@ export const useCinematicScroll = () => {
         window.addEventListener("scroll", handleScroll, { passive: true });
         window.addEventListener("wheel", stopMission, { passive: true });
         window.addEventListener("mousedown", stopMission, { passive: true });
+        // On mobile, touchstart shouldn't necessarily kill the mission immediately 
+        // unless it's a significant drag. Let's keep it for now but note the potential issue.
         window.addEventListener("touchstart", stopMission, { passive: true });
 
         requestRef.current = requestAnimationFrame(update);

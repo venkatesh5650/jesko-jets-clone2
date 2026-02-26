@@ -38,8 +38,8 @@ export const NavbarOverlay = ({ progress, isMission, startMission, scrollToSecti
     return (
         <>
             <nav className="fixed top-0 left-0 w-full h-20 flex justify-between items-center px-8 md:px-16 z-[3000] pointer-events-auto">
-                {/* World-Class Frosted Glass Background (Top Gradient) */}
-                <div className="absolute inset-0 bg-gradient-to-b from-white/[0.08] to-transparent backdrop-blur-[18px] border-b border-white/[0.03]" />
+                {/* World-Class Frosted Glass Background (Adaptive Blur) */}
+                <div className="absolute inset-0 bg-gradient-to-b from-white/[0.08] to-transparent backdrop-blur-md md:backdrop-blur-[18px] border-b border-white/[0.03]" />
 
                 {/* Left: Logo */}
                 <button
