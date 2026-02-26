@@ -26,22 +26,27 @@ export const useCinematicScroll = () => {
         };
 
         const stopMission = () => {
-            isMissionRef.current = false;
-            setIsMission(false);
+            if (isMissionRef.current) {
+                isMissionRef.current = false;
+                setIsMission(false);
+            }
         };
 
         const update = () => {
+            const docHeight = document.documentElement.scrollHeight;
+            const winHeight = window.innerHeight;
+            const height = docHeight - winHeight;
+
             if (isMissionRef.current) {
-                const height = document.documentElement.scrollHeight - window.innerHeight;
                 // Luxury speed: Slow, intentional crawl
                 const nextTarget = Math.min(1, scrollData.current.target + 0.00085);
                 scrollData.current.target = nextTarget;
 
+                // V21: Programmatic scroll that bypasses simple event listener loops
                 window.scrollTo(0, nextTarget * height);
 
                 if (nextTarget >= 1) {
-                    isMissionRef.current = false;
-                    setIsMission(false);
+                    stopMission();
                 }
             }
 
@@ -58,18 +63,15 @@ export const useCinematicScroll = () => {
 
         window.addEventListener("scroll", handleScroll, { passive: true });
         window.addEventListener("wheel", stopMission, { passive: true });
-        window.addEventListener("mousedown", stopMission, { passive: true });
-        // On mobile, touchstart shouldn't necessarily kill the mission immediately 
-        // unless it's a significant drag. Let's keep it for now but note the potential issue.
-        window.addEventListener("touchstart", stopMission, { passive: true });
+        // V21: Mobile Stability - Don't kill mission on first touch/click
+        // Only kill if user actively scrolls (wheel) or starts a gesture elsewhere.
+        // We remove touchstart/mousedown to prevent immediate kill on mobile "Enter"
 
         requestRef.current = requestAnimationFrame(update);
 
         return () => {
             window.removeEventListener("scroll", handleScroll);
             window.removeEventListener("wheel", stopMission);
-            window.removeEventListener("mousedown", stopMission);
-            window.removeEventListener("touchstart", stopMission);
             if (requestRef.current) cancelAnimationFrame(requestRef.current);
         };
     }, []);
