@@ -15,8 +15,14 @@ export const useCinematicScroll = () => {
     });
 
     useEffect(() => {
+        let isTabVisible = true;
+        const handleVisibilityChange = () => {
+            isTabVisible = !document.hidden;
+        };
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
         const handleScroll = () => {
-            if (!isMissionRef.current) {
+            if (!isMissionRef.current && isTabVisible) {
                 const scrollY = window.scrollY;
                 const docHeight = Math.max(
                     document.documentElement.scrollHeight,
@@ -37,9 +43,14 @@ export const useCinematicScroll = () => {
         };
 
         const update = () => {
+            if (!isTabVisible) {
+                requestRef.current = requestAnimationFrame(update);
+                return;
+            }
+
             const isMobile = window.innerWidth <= 768;
 
-            // V23: LUXURY MOTION ENGINE
+            // V24: LUXURY MOTION ENGINE
             if (isMissionRef.current) {
                 const step = 0.00085;
                 const nextTarget = Math.min(1, scrollData.current.target + step);
@@ -61,8 +72,8 @@ export const useCinematicScroll = () => {
 
             const { current, target } = scrollData.current;
 
-            // PHYSICS: inertialite (0.045) for mobile, frictionless (0.028) for desktop
-            const damping = isMobile ? 0.045 : 0.028;
+            // V24 PHYSICS: 0.06 for punchy mobile feedback, 0.028 for desktop float
+            const damping = isMobile ? 0.06 : 0.028;
             const next = current + (target - current) * damping;
 
             scrollData.current.current = next;
@@ -78,6 +89,7 @@ export const useCinematicScroll = () => {
         requestRef.current = requestAnimationFrame(update);
 
         return () => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
             window.removeEventListener("scroll", handleScroll);
             window.removeEventListener("wheel", stopMission);
             if (requestRef.current) cancelAnimationFrame(requestRef.current);

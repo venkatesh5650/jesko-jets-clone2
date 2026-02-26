@@ -106,43 +106,39 @@ export const useImageSequence = (
     progress: number,
     options: { scale?: number, blur?: number } = {}
   ) => {
-    if (images.length === 0) return;
-
     const frameIndex = Math.min(
       frameCount - 1,
       Math.max(0, Math.floor(progress * (frameCount - 1)))
     );
 
-    // V22: Find nearest loaded frame if current was skipped
+    // V24: ULTRA-FAST FRAME SELECTION
     let img = images[frameIndex];
     if (!img || !img.src) {
-      // Find previous loaded frame as fallback
-      for (let j = frameIndex; j >= 0; j--) {
-        if (images[j] && images[j].src) {
-          img = images[j];
-          break;
-        }
-      }
+      // Binary search or direct jump for nearest loaded frame
+      const density = window.innerWidth <= 768 ? 3 : 1;
+      const nearestIdx = Math.floor(frameIndex / density) * density;
+      img = images[nearestIdx] || images[0];
     }
 
     if (!img || !img.complete || !img.src) return;
 
-    // Ensure canvas backing store matches this specific frame's resolution
-    // V20 MOBILE OPTIMIZATION: Cap resolution on small screens to prevent GPU crash
     const dpr = window.devicePixelRatio || 1;
     const isMobile = window.innerWidth <= 768;
-    const maxDimension = isMobile ? 2048 : 7680; // Cap at 2K for mobile, 8K for desktop
+    const maxDimension = isMobile ? 2048 : 7680;
 
-    let naturalWidth = img.naturalWidth;
-    let naturalHeight = img.naturalHeight;
+    const scaleFactor = Math.min(1, maxDimension / Math.max(img.naturalWidth, img.naturalHeight));
+    const targetWidth = Math.floor(img.naturalWidth * scaleFactor);
+    const targetHeight = Math.floor(img.naturalHeight * scaleFactor);
 
-    const scaleFactor = Math.min(1, maxDimension / Math.max(naturalWidth, naturalHeight));
-    const targetWidth = Math.floor(naturalWidth * scaleFactor);
-    const targetHeight = Math.floor(naturalHeight * scaleFactor);
+    // V24 MEMOIZED RESIZE: Only reset canvas if absolutely necessary
+    const currentW = canvas.width;
+    const currentH = canvas.height;
+    const neededW = targetWidth * dpr;
+    const neededH = targetHeight * dpr;
 
-    if (canvas.width !== targetWidth * dpr || canvas.height !== targetHeight * dpr) {
-      canvas.width = targetWidth * dpr;
-      canvas.height = targetHeight * dpr;
+    if (Math.abs(currentW - neededW) > 1 || Math.abs(currentH - neededH) > 1) {
+      canvas.width = neededW;
+      canvas.height = neededH;
       const ctx = canvas.getContext("2d", { alpha: false });
       if (ctx) ctx.scale(dpr, dpr);
     }
@@ -150,19 +146,9 @@ export const useImageSequence = (
     const ctx = canvas.getContext("2d", { alpha: false });
     if (!ctx) return;
 
-    // Trigger aggressive prefetch
     prefetchBuffer(frameIndex);
 
-    // Centered Draw with scaling
-    ctx.clearRect(0, 0, targetWidth, targetHeight);
-
-    if (options.blur) {
-      ctx.filter = `blur(${options.blur}px)`;
-    } else {
-      ctx.filter = "none";
-    }
-
-    // Centered Scaled Draw
+    // V24: Eliminate clearRect if image covers whole canvas
     ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
   }, [images, frameCount]);
 
