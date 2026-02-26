@@ -16,12 +16,16 @@ export const useCinematicScroll = () => {
 
     useEffect(() => {
         const handleScroll = () => {
-            // Only update target if mission IS NOT running.
-            // When mission is running, the update() loop drives the scroll.
             if (!isMissionRef.current) {
                 const scrollY = window.scrollY;
-                const height = document.documentElement.scrollHeight - window.innerHeight;
-                scrollData.current.target = Math.max(0, Math.min(1, scrollY / height));
+                const docHeight = Math.max(
+                    document.documentElement.scrollHeight,
+                    document.body.scrollHeight,
+                    1
+                );
+                const winHeight = window.innerHeight;
+                const height = docHeight - winHeight;
+                scrollData.current.target = height > 0 ? Math.max(0, Math.min(1, scrollY / height)) : 0;
             }
         };
 
@@ -32,82 +36,79 @@ export const useCinematicScroll = () => {
             }
         };
 
-        // V22: Robust height detection for mobile/fixed layouts
-        const docHeight = Math.max(
-            document.documentElement.scrollHeight,
-            document.body.scrollHeight,
-            8000 // Fallback to 800vh equivalent if reporting 0
-        );
-        const winHeight = typeof window !== 'undefined' ? window.innerHeight : 1000;
-        const height = docHeight - winHeight;
+        const update = () => {
+            const isMobile = window.innerWidth <= 768;
 
-        if (isMissionRef.current) {
-            // Luxury speed: Slow, intentional crawl
-            const step = 0.00085;
-            const nextTarget = Math.min(1, scrollData.current.target + step);
+            // V23: LUXURY MOTION ENGINE
+            if (isMissionRef.current) {
+                const step = 0.00085;
+                const nextTarget = Math.min(1, scrollData.current.target + step);
+                scrollData.current.target = nextTarget;
 
-            scrollData.current.target = nextTarget;
+                // Drive native scroll to keep listeners and overlays in sync
+                const docHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight, 1);
+                const winHeight = window.innerHeight;
+                const height = docHeight - winHeight;
 
-            // Sync scrollbar if possible (bypasses Lenis conflicts by being manual)
-            if (height > 0) {
-                window.scrollTo({
-                    top: nextTarget * height,
-                    behavior: "auto"
-                });
+                if (height > 0) {
+                    window.scrollTo(0, nextTarget * height);
+                }
+
+                if (nextTarget >= 1) {
+                    stopMission();
+                }
             }
 
-            if (nextTarget >= 1) {
-                stopMission();
-            }
-        }
+            const { current, target } = scrollData.current;
 
-        const { current, target } = scrollData.current;
-        // Damping adjusted for a "frictionless" floating feel
-        const damping = 0.028;
-        const next = current + (target - current) * damping;
+            // PHYSICS: inertialite (0.045) for mobile, frictionless (0.028) for desktop
+            const damping = isMobile ? 0.045 : 0.028;
+            const next = current + (target - current) * damping;
 
-        scrollData.current.current = next;
-        setProgress(next);
+            scrollData.current.current = next;
+            setProgress(next);
+
+            requestRef.current = requestAnimationFrame(update);
+        };
+
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        window.addEventListener("wheel", stopMission, { passive: true });
+        // NOTE: touchstart listener removed to allow "autoMission" to start after first tap
 
         requestRef.current = requestAnimationFrame(update);
+
+        return () => {
+            window.removeEventListener("scroll", handleScroll);
+            window.removeEventListener("wheel", stopMission);
+            if (requestRef.current) cancelAnimationFrame(requestRef.current);
+        };
+    }, []);
+
+    const startMission = () => {
+        // V23: Tap-Anywhere Start Delay (100ms)
+        setTimeout(() => {
+            window.scrollTo(0, 0);
+            scrollData.current.target = 0;
+            scrollData.current.current = 0;
+            setProgress(0);
+            isMissionRef.current = true;
+            setIsMission(true);
+        }, 100);
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("wheel", stopMission, { passive: true });
-    // V21: Mobile Stability - Don't kill mission on first touch/click
-    // Only kill if user actively scrolls (wheel) or starts a gesture elsewhere.
-    // We remove touchstart/mousedown to prevent immediate kill on mobile "Enter"
+    const scrollToSection = (p: number) => {
+        const docHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight, 1);
+        const winHeight = window.innerHeight;
+        const height = docHeight - winHeight;
 
-    requestRef.current = requestAnimationFrame(update);
+        isMissionRef.current = false;
+        setIsMission(false);
 
-    return () => {
-        window.removeEventListener("scroll", handleScroll);
-        window.removeEventListener("wheel", stopMission);
-        if (requestRef.current) cancelAnimationFrame(requestRef.current);
+        window.scrollTo({
+            top: height * p,
+            behavior: "smooth" // V23: Ensure easeInOut travel
+        });
     };
-}, []);
 
-const startMission = () => {
-    // Full Reset: Instant jump to top
-    window.scrollTo(0, 0);
-    scrollData.current.target = 0;
-    scrollData.current.current = 0;
-    setProgress(0);
-    isMissionRef.current = true;
-    setIsMission(true);
-};
-
-const scrollToSection = (p: number) => {
-    const height = document.documentElement.scrollHeight - window.innerHeight;
-    isMissionRef.current = false;
-    setIsMission(false);
-    // Instant scroll triggers handleScroll which sets target. 
-    // LERP then smoothly interpolates. This unifies click and scroll.
-    window.scrollTo({
-        top: height * p,
-        behavior: "auto"
-    });
-};
-
-return { progress, isMission, startMission, scrollToSection };
+    return { progress, isMission, startMission, scrollToSection };
 };

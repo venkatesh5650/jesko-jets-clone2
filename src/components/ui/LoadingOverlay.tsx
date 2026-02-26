@@ -42,6 +42,13 @@ export const LoadingOverlay = ({ isLoaded, onStart }: LoadingOverlayProps) => {
                 transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
                 className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center p-6 select-none"
             >
+                <div
+                    className="absolute inset-0 z-0 cursor-pointer"
+                    onClick={() => {
+                        if (showButton) onStart();
+                    }}
+                />
+
                 {/* Cinematic Background Lines */}
                 <div className="absolute inset-0 overflow-hidden opacity-20 pointer-events-none">
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-full bg-gradient-to-b from-transparent via-neutral-500 to-transparent" />

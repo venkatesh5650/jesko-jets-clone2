@@ -37,12 +37,8 @@ export const Globe = ({ progress }: { progress: number }) => {
         };
     }, []);
 
-    // V12 Cinematic Handoff Blend (7% window)
-    const config = interpolateShot(progress, 0.78, 0.85, {
-        opacity: [0, 1],
-        scale: [1.2, 1],
-        blur: [15, 0]
-    });
+    // V23 MOBILE OVERRIDE: Adaptive LOD
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
     return (
         <CinematicViewport zIndex={10}>
@@ -53,7 +49,7 @@ export const Globe = ({ progress }: { progress: number }) => {
             />
 
             <div
-                className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.15)_0%,transparent_75%)] pointer-events-none"
+                className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.1)_0%,transparent_75%)] pointer-events-none"
                 style={{
                     opacity: config.opacity,
                     transform: `scale(${1 + (1 - config.opacity) * 0.2})`
@@ -74,16 +70,21 @@ export const Globe = ({ progress }: { progress: number }) => {
                 style={{
                     opacity: config.opacity * 0.9,
                     transform: `scale(${config.scale})`,
-                    filter: `brightness(1.3) contrast(1.2) blur(${config.blur}px)`,
+                    filter: isMobile ? 'none' : `brightness(1.3) contrast(1.2) blur(${config.blur}px)`,
                     willChange: 'transform, opacity'
                 }}
                 className="w-[35%] aspect-square mix-blend-screen globe-breathe relative"
             >
-                {/* Rim Light Effect (Left Side) */}
-                <div className="absolute inset-0 rounded-full shadow-[-40px_0_80px_-20px_rgba(34,211,238,0.3)] pointer-events-none z-10" />
+                {/* Rim Light Effect (Desktop Only for GPU luxury) */}
+                {!isMobile && (
+                    <div className="absolute inset-0 rounded-full shadow-[-40px_0_80px_-20px_rgba(34,211,238,0.3)] pointer-events-none z-10" />
+                )}
 
-                {/* Atmospheric Glow */}
-                <div className="absolute -inset-10 rounded-full bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.05)_0%,transparent_70%)] blur-3xl pointer-events-none" />
+                {/* Atmospheric Glow (Reduced for mobile) */}
+                <div className={cn(
+                    "absolute rounded-full bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.05)_0%,transparent_70%)] pointer-events-none",
+                    isMobile ? "-inset-2 blur-xl" : "-inset-10 blur-3xl"
+                )} />
 
                 {/* Rule 2: Persistent Render Layer (Direct DOM Update) */}
                 <div
@@ -101,7 +102,7 @@ export const Globe = ({ progress }: { progress: number }) => {
                         playsInline
                         preload="auto"
                         className="w-full h-full object-cover grayscale rounded-full"
-                        style={{ filter: "brightness(0.9) contrast(1.3)" }}
+                        style={{ filter: isMobile ? "brightness(0.95)" : "brightness(0.9) contrast(1.3)" }}
                         onLoadedMetadata={(e) => {
                             e.currentTarget.playbackRate = 0.7;
                         }}
@@ -111,19 +112,21 @@ export const Globe = ({ progress }: { progress: number }) => {
                 </div>
             </div>
 
-            {/* Floating UI Elements / Data Visualization */}
-            <div
-                className="absolute inset-0 pointer-events-none"
-                style={{ opacity: config.opacity }}
-            >
-                <div className="absolute top-1/4 left-1/4 w-32 h-px bg-white/10" />
-                <div className="absolute bottom-1/3 right-1/4 w-24 h-px bg-white/10" />
-            </div>
+            {/* Floating UI Elements / Data Visualization - Simple for mobile */}
+            {!isMobile && (
+                <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{ opacity: config.opacity }}
+                >
+                    <div className="absolute top-1/4 left-1/4 w-32 h-px bg-white/10" />
+                    <div className="absolute bottom-1/3 right-1/4 w-24 h-px bg-white/10" />
+                </div>
+            )}
 
             <div
                 style={{
                     opacity: config.opacity,
-                    transform: `translateY(${(1 - config.opacity) * 40}px)`
+                    transform: `translate3d(0, ${isMobile ? 0 : (1 - config.opacity) * 40}px, 0)`
                 }}
                 className="absolute inset-0 flex flex-col items-center justify-center text-center px-6"
             >
@@ -139,9 +142,11 @@ export const Globe = ({ progress }: { progress: number }) => {
                 </AntigravityButton>
             </div>
 
-            {/* Luxury Vignette and Grain */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,rgba(0,0,0,0.7)_100%)] pointer-events-none" />
-            <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+            {/* Luxury Vignette (Optimized) */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_40%,rgba(0,0,0,0.6)_100%)] pointer-events-none" />
+            {!isMobile && (
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+            )}
         </CinematicViewport>
     );
 };
