@@ -14,18 +14,35 @@ export const useImageSequence = (
 
   const preloadImages = useCallback(() => {
     const loadedImages: HTMLImageElement[] = [];
-    let loadedCount = 0;
+    let processedCount = 0;
+
+    // V22 ADAPTIVE DENSITY: Load fewer frames on mobile to prevent memory crash
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+    const step = isMobile ? 3 : 1;
 
     for (let i = 1; i <= frameCount; i++) {
       const img = new Image();
       const frameIndex = i.toString().padStart(3, "0");
-      img.src = `/${folder}/${fileNamePrefix}${frameIndex}.${extension}`;
-      img.onload = () => {
-        loadedCount++;
-        if (loadedCount === frameCount) {
-          setIsLoaded(true);
-        }
-      };
+
+      // Only set src for frames we want to load based on density step
+      if ((i - 1) % step === 0) {
+        img.src = `/${folder}/${fileNamePrefix}${frameIndex}.${extension}`;
+
+        img.onload = () => {
+          processedCount++;
+          if (processedCount >= Math.ceil(frameCount / step)) {
+            setIsLoaded(true);
+          }
+        };
+
+        img.onerror = () => {
+          console.warn(`Frame fail: ${frameIndex}`);
+          processedCount++; // Still count as processed to allow app to start
+          if (processedCount >= Math.ceil(frameCount / step)) {
+            setIsLoaded(true);
+          }
+        };
+      }
       loadedImages.push(img);
     }
     setImages(loadedImages);
@@ -96,8 +113,19 @@ export const useImageSequence = (
       Math.max(0, Math.floor(progress * (frameCount - 1)))
     );
 
-    const img = images[frameIndex];
-    if (!img || !img.complete) return;
+    // V22: Find nearest loaded frame if current was skipped
+    let img = images[frameIndex];
+    if (!img || !img.src) {
+      // Find previous loaded frame as fallback
+      for (let j = frameIndex; j >= 0; j--) {
+        if (images[j] && images[j].src) {
+          img = images[j];
+          break;
+        }
+      }
+    }
+
+    if (!img || !img.complete || !img.src) return;
 
     // Ensure canvas backing store matches this specific frame's resolution
     // V20 MOBILE OPTIMIZATION: Cap resolution on small screens to prevent GPU crash
