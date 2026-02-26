@@ -4,6 +4,7 @@ import { useRef, useEffect } from "react";
 import { CinematicViewport } from "@/components/ui/CinematicViewport";
 import { interpolateShot } from "@/lib/motion";
 import { AntigravityButton } from "@/components/ui/AntigravityButton";
+import { cn } from "@/lib/utils";
 
 export const Globe = ({ progress }: { progress: number }) => {
     const globeRef = useRef<HTMLDivElement>(null);
@@ -39,6 +40,13 @@ export const Globe = ({ progress }: { progress: number }) => {
 
     // V23 MOBILE OVERRIDE: Adaptive LOD
     const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+
+    // V12 Cinematic Handoff Blend (7% window)
+    const config = interpolateShot(progress, 0.78, 0.85, {
+        opacity: [0, 1],
+        scale: [1.2, 1],
+        blur: [15, 0]
+    });
 
     return (
         <CinematicViewport zIndex={10}>
